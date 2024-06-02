@@ -1,0 +1,35 @@
+name: Alignment
+
+on:
+  repository_dispatch:
+    types: [alignment]
+
+jobs:
+  alignment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create GitHub App Token
+        uses: actions/create-github-app-token@v1.6.3
+        id: generate-token
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_KEY }}
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          submodules: recursive
+      - run: |
+          git config --global user.name "DemyCode"
+          git config --global user.email "verycols@gmail.com"
+          git checkout -b ${{ github.event.client_payload.branch }} || git checkout ${{ github.event.client_payload.branch }}
+          cd ${{ github.event.client_payload.repository }}
+          git fetch origin ${{ github.event.client_payload.branch }}
+          git checkout ${{ github.event.client_payload.branch }}
+          cd ..
+          git add ${{ github.event.client_payload.repository }}
+          COMMIT_MESSAGE="${{ github.event.client_payload.message }}"
+          if [ ${{ startsWith(github.event.client_payload.message, 'chore(release):') }} = true ]; then
+            COMMIT_MESSAGE=${COMMIT_MESSAGE/release/${{ github.event.client_payload.repository }}}
+          fi
+          git commit -m "${COMMIT_MESSAGE}"
+          git push origin ${{ github.event.client_payload.branch }} || git push --set-upstream origin ${{ github.event.client_payload.branch }} || echo "Push failed. See previous logs for details."

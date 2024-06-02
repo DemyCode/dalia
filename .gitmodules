@@ -1,0 +1,6 @@
+[submodule "dalia-app"]
+	path = dalia-app
+	url = git@github.com:DemyCode/dalia-app.git
+[submodule "dalia-ml"]
+	path = dalia-ml
+	url = git@github.com:DemyCode/dalia-ml.git
